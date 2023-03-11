@@ -1,7 +1,17 @@
+// Arduino Library
 #include <Arduino.h>
-#include <Servo.h>
+
+// Other Library
+#include "Bluetooth.h"
+
+// *************** Global Variable ***************
 
 void setup() {
+    Serial.begin(9600);
+
+    BLUETOOTH::Init();
+
+    BLUETOOTH::AT_Mode();
 }
 
 void loop() {
