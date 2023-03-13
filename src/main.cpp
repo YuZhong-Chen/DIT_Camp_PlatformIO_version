@@ -1,18 +1,20 @@
 // Arduino Library
 #include <Arduino.h>
+#include <ArduinoSTL.h>
 
 // Other Library
 #include "Bluetooth.h"
-
-// *************** Global Variable ***************
+#include "Buzzer.h"
+#include "DC_motor.h"
+#include "LCD.h"
 
 void setup() {
-    Serial.begin(9600);
-
+    BUZZER::Init();
+    LCD::Init();
     BLUETOOTH::Init();
-
-    BLUETOOTH::AT_Mode();
+    DC_MOTOR::Init();
 }
 
 void loop() {
+    BLUETOOTH::Read();
 }
