@@ -38,16 +38,20 @@ void AT_Mode() {
     }
 }
 
+String angle;
+String strength;
+String button;
+
 void Read() {
     if (BT.available()) {
         String value = BT.readStringUntil('#');
 
         if (value.length() == 7) {
-            String angle = value.substring(0, 3);
-            String strength = value.substring(3, 6);
-            String button = value.substring(6, 8);
+            angle = value.substring(0, 3);
+            strength = value.substring(3, 6);
+            button = value.substring(6, 8);
 
-            LCD::print(angle);
+            LCD::print(button);
         }
         BT.flush();
     }

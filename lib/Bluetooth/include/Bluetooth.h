@@ -9,6 +9,9 @@
 
 namespace BLUETOOTH {
 extern SoftwareSerial BT;
+extern String angle;
+extern String strength;
+extern String button;
 
 void Init();
 void AT_Mode();
