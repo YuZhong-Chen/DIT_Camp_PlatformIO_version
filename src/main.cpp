@@ -10,25 +10,28 @@
 #include "ServoLib.h"
 
 void setup() {
-    BUZZER::Init();
-    LCD::Init();
-    BLUETOOTH::Init();
-    DC_MOTOR::Init();
-    SERVO::Init();
+    // BUZZER::Init();
+    // LCD::Init();
+    // BLUETOOTH::Init();
+    // DC_MOTOR::Init();
+    // SERVO::Init();
+
+    BLUETOOTH::Setup_Mode();
+    // BLUETOOTH::AT_Mode();
 }
 
 void loop() {
-    BLUETOOTH::Read();
+    // BLUETOOTH::Read();
 
-    if (BLUETOOTH::button[0] == '1') {
-        DC_MOTOR::Forward(255);
-    } else if (BLUETOOTH::button[0] == '2') {
-        DC_MOTOR::Right(255);
-    } else if (BLUETOOTH::button[0] == '3') {
-        DC_MOTOR::Backward(255);
-    } else if (BLUETOOTH::button[0] == '4') {
-        DC_MOTOR::Left(255);
-    } else {
-        DC_MOTOR::Stop();
-    }
+    // if (BLUETOOTH::button[0] == '1') {
+    //     DC_MOTOR::Forward(255);
+    // } else if (BLUETOOTH::button[0] == '2') {
+    //     DC_MOTOR::Right(255);
+    // } else if (BLUETOOTH::button[0] == '3') {
+    //     DC_MOTOR::Backward(255);
+    // } else if (BLUETOOTH::button[0] == '4') {
+    //     DC_MOTOR::Left(255);
+    // } else {
+    //     DC_MOTOR::Stop();
+    // }
 }

@@ -15,7 +15,11 @@ extern String button;
 
 void Init();
 void AT_Mode();
+void Setup_Mode();
 void Read();
+
+void Check_Basic_Info(SoftwareSerial *BT_AT_Mode);
+void Check_Connection(SoftwareSerial *BT_AT_Mode);
 
 }  // namespace BLUETOOTH
 
