@@ -18,8 +18,11 @@ void AT_Mode();
 void Setup_Mode();
 void Read();
 
+// The functions below are only for testing purposes.
 void Check_Basic_Info(SoftwareSerial *BT_AT_Mode);
 void Check_Connection(SoftwareSerial *BT_AT_Mode);
+void ReadBluetooth();
+void ReadDataFromHM10();
 
 }  // namespace BLUETOOTH
 

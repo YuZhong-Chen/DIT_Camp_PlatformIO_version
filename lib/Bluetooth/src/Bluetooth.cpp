@@ -6,23 +6,26 @@
 #include "LCD.h"
 
 // Bluetooth Pin
-#define BLUETOOTH_RX_PIN 8
-#define BLUETOOTH_TX_PIN 9
+#define BLUETOOTH_RX_PIN 6
+#define BLUETOOTH_TX_PIN 7
 
 namespace BLUETOOTH {
+
+int SERIAL_BAUD_RATE = 9600;
+int BLUETOOTH_BAUD_RATE = 115200;
 
 SoftwareSerial BT(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
 
 void Init() {
-    BT.begin(38400);
+    BT.begin(BLUETOOTH_BAUD_RATE);
 }
 
 // NOTE: This function will not return.
 void AT_Mode() {
-    SoftwareSerial BT_AT_Mode(6, 7);
+    SoftwareSerial BT_AT_Mode(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
 
-    Serial.begin(9600);
-    BT_AT_Mode.begin(115200);
+    Serial.begin(SERIAL_BAUD_RATE);
+    BT_AT_Mode.begin(BLUETOOTH_BAUD_RATE);
 
     char Data;
     Serial.println("Start AT mode");
@@ -65,14 +68,16 @@ void Check_Connection(SoftwareSerial *BT_AT_Mode) {
             RetryCount++;
             if (RetryCount == 6) {
                 Serial.println("Change baud rate to 38400.");
-                BT_AT_Mode->begin(38400);
+                BLUETOOTH_BAUD_RATE = 38400;
+                BT_AT_Mode->begin(BLUETOOTH_BAUD_RATE);
                 delay(100);
                 BT_AT_Mode->write("AT\r\n");
                 RetryDelay = 0;
                 RetryCount = 0;
             } else if (RetryCount == 3) {
                 Serial.println("Change baud rate to 115200.");
-                BT_AT_Mode->begin(115200);
+                BLUETOOTH_BAUD_RATE = 115200;
+                BT_AT_Mode->begin(BLUETOOTH_BAUD_RATE);
                 delay(100);
                 BT_AT_Mode->write("AT\r\n");
                 RetryDelay = 0;
@@ -215,10 +220,10 @@ void Check_Basic_Info(SoftwareSerial *BT_AT_Mode) {
 
 // NOTE: This function will not return.
 void Setup_Mode() {
-    SoftwareSerial BT_AT_Mode(6, 7);
+    SoftwareSerial BT_AT_Mode(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
 
-    Serial.begin(9600);
-    BT_AT_Mode.begin(38400);
+    Serial.begin(SERIAL_BAUD_RATE);
+    BT_AT_Mode.begin(BLUETOOTH_BAUD_RATE);
 
     char Data;
     Serial.println("Start to Setup mode.");
@@ -251,7 +256,7 @@ void Setup_Mode() {
                 delay(50);
 
                 // Set Password to Name
-                TransmitData = "AT+PSWD=" + ReceiveData.substring(5) + "\r\n";
+                TransmitData = "AT+PSWD=\"" + ReceiveData.substring(5) + "\"\r\n";
                 BT_AT_Mode.write(TransmitData.c_str());
                 delay(50);
 
@@ -309,6 +314,22 @@ void Setup_Mode() {
     }
 }
 
+void ReadBluetooth() {
+    SoftwareSerial BT_Mode(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
+
+    Serial.begin(SERIAL_BAUD_RATE);
+    BT_Mode.begin(BLUETOOTH_BAUD_RATE);
+
+    char data;
+
+    while (true) {
+        if (BT_Mode.available()) {
+            data = BT_Mode.read();
+            Serial.print(data);
+        }
+    }
+}
+
 String angle;
 String strength;
 String button;
@@ -325,6 +346,87 @@ void Read() {
             LCD::print(button);
         }
         BT.flush();
+    }
+}
+
+/**
+ * Because ios doesn't support Bluetooth 2.1 or below,
+ * so you need to replace HC-05 with HM-10.
+ *
+ * You can download the app from apple's app store, called "ArduinoBlue".
+ * Be careful, don't download the V2 version, it may not work.
+ *
+ */
+void ReadDataFromHM10() {
+    SoftwareSerial HM10(BLUETOOTH_RX_PIN, BLUETOOTH_TX_PIN);
+
+    Serial.begin(SERIAL_BAUD_RATE);
+    HM10.begin(BLUETOOTH_BAUD_RATE);
+
+    uint8_t input;
+
+    int inputLength = 2;
+    int inputSignal[inputLength] = {0};
+    int currentInputLength = -1;
+    bool isStartDrive = false;
+    bool isStartButton = false;
+
+    while (true) {
+        if (HM10.available()) {
+            input = HM10.read();
+
+            if (input == 251) {
+                isStartDrive = true;
+            } else if (input == 252) {
+                isStartButton = true;
+            } else if (input == 250) {
+                if (isStartDrive) {
+                    // throttle
+                    Serial.print(map(abs(inputSignal[0]), 0, 50, 0, 100));
+                    Serial.print(" ");
+
+                    // steering
+                    if (inputSignal[0] == 0) {
+                        Serial.print("0");
+                        Serial.println("");
+                    } else if (inputSignal[0] >= 0) {
+                        if (inputSignal[1] >= 0) {
+                            Serial.print(map(50 - abs(inputSignal[1]), 0, 50, 0, 90));
+                            Serial.println("");
+                        } else {
+                            Serial.print(map(abs(inputSignal[1]), 0, 50, 90, 180));
+                            Serial.println("");
+                        }
+                    } else {
+                        if (inputSignal[1] >= 0) {
+                            Serial.print(map(abs(inputSignal[1]), 0, 50, 270, 360));
+                            Serial.println("");
+                        } else {
+                            Serial.print(map(50 - abs(inputSignal[1]), 0, 50, 180, 270));
+                            Serial.println("");
+                        }
+                    }
+
+                    currentInputLength = -1;
+                    isStartDrive = false;
+                } else if (isStartButton) {
+                    Serial.print(inputSignal[0]);
+                    Serial.println("");
+
+                    currentInputLength = -1;
+                    isStartButton = false;
+                }
+            } else if (isStartDrive || isStartButton) {
+                if (currentInputLength + 1 < inputLength) {
+                    // Sometime, ArduinoBlue will set the sign bit to 1, so check the value of data.
+                    // If it happens, directly set the sign bit to 0, and you will get the correct data.
+                    if (isStartDrive && abs(input - 49) > 50) {
+                        input = input % 128;
+                    }
+                    inputSignal[++currentInputLength] = (isStartDrive) ? input - 49 : input;
+                }
+            }
+        }
     }
 }
 

@@ -16,8 +16,11 @@ void setup() {
     // DC_MOTOR::Init();
     // SERVO::Init();
 
+    /* BT test or setting. */
     BLUETOOTH::Setup_Mode();
     // BLUETOOTH::AT_Mode();
+    // BLUETOOTH::ReadBluetooth();
+    // BLUETOOTH::ReadDataFromHM10();
 }
 
 void loop() {
